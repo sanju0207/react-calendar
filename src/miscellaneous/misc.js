@@ -6,7 +6,6 @@ export const getCurrentDate = () => {
 
 export const validateSlotTime=(date)=>{
    let currDate=getCurrentDate()
-   console.log(currDate,date)
    if(currDate>date)
    {
      return false
