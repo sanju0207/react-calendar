@@ -1,9 +1,10 @@
 import { Box, Text, useToast } from "@chakra-ui/react";
 import React, { useRef } from "react";
-import { updateOneSlotAvailability } from "../miscellaneous/dataFetching";
+import { getDocAvailability, updateOneSlotAvailability } from "../miscellaneous/dataFetching";
 import { validateSlotTime } from "../miscellaneous/functions";
 
-const Slots = ({ data, setSlots, date, docId, fetchDocData }) => {
+const Slots = ({ data, setSlots, setLoading, docId }) => {
+  console.log(docId)
   const toast = useToast();
   const ref = useRef(null);
   const handleSatusChange = (id, status, date) => {
@@ -20,14 +21,6 @@ const Slots = ({ data, setSlots, date, docId, fetchDocData }) => {
     let updatedStatus = status == 0 ? 1 : 0;
     updateOneSlotAvailability({ id: id, is_available: updatedStatus })
       .then((res) => {
-        // const updatedSlots = data.map((el) => {
-        //   if (id == el.id) {
-        //     return { ...el, is_available: updatedStatus };
-        //   }
-        //   return el;
-        // });
-        // setSlots(updatedSlots);
-        fetchDocData(date, docId);
         toast({
           description: "Status updated",
           duration: 1500,
@@ -35,6 +28,15 @@ const Slots = ({ data, setSlots, date, docId, fetchDocData }) => {
           status: "success",
           position: "top",
         });
+        setLoading(true)
+        getDocAvailability({doc_id:docId, slot_date:date}).then((res)=>{
+          setLoading(false)          
+          setSlots(res)
+        }).catch((err)=>{
+          console.log(err)
+          setLoading(false)
+          setSlots([])
+        })
       })
       .catch((err) => {
         toast({

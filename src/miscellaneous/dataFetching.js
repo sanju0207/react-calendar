@@ -2,24 +2,28 @@ import axios from "axios";
 export const getDocAvailability = async (payload) => {
   return await axios
     .post(
-      `https://kapiva.app/api/get_doc_availibility.php?p=setmore_availability`,
+      `http://localhost/setmore_availability/api/get_doc_availibility.php?p=setmore_availability`,
       payload
     )
     .then((res) => {
-      console.log(res)
       return getCustomData(res.data.response);
-    });
+    }).catch((err)=>{
+      return err
+    })
 };
 export const updateOneSlotAvailability = async (payload) => {
   return await axios.post("http://localhost/setmore_availability/api/get_doc_availibility.php?p=update_availability", payload).then((res) => {
-    return getCustomData(res.data.response);
-  });
+    return res
+  }).catch((err)=>{
+    return err
+  })
 };
 export const updateAllSlotAvailability = async (payload) => {
-  console.log(payload)
   return await axios.post("http://localhost/setmore_availability/api/get_doc_availibility.php?p=update_all", payload).then((res) => {
-    return getCustomData(res.data.response);
-  });
+    return res
+  }).catch((err)=>{
+    return err
+  })
 };
 const getCustomData = (data) => {
   const customData = data.map((el) => {

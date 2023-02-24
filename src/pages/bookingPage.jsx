@@ -28,21 +28,21 @@ const BookingPage = () => {
   const inputRef = useRef(null);
   const params = useParams();
   const toast = useToast();
-  const fetcDocData=(docId,date)=>{
+  const fetcDocData = (docId, date) => {
     setLoading(true);
     getDocAvailability({ doc_id: docId, slot_date: date })
-    .then((res) => {
-      setSlots(res);
-      setLoading(false);
-    })
-    .catch((err) => {
-      console.log(err);
-      setSlots([]);
-      setLoading(false);
-    });
+      .then((res) => {
+        setSlots(res);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setSlots([]);
+        setLoading(false);
+      });
   }
   useEffect(() => {
-    fetcDocData(docId,date)
+    fetcDocData(docId, date)
   }, [date]);
 
   const handleDateChange = (e) => {
@@ -74,11 +74,14 @@ const BookingPage = () => {
           status: "success",
           isClosable: "true",
         });
-        fetcDocData(docId,date)
-        // const toggledData = slots.map((el) => {
-        //   return { ...el, is_available: value };
-        // });
-        // setSlots(toggledData);
+        getDocAvailability({ doc_id: docId, slot_date: date }).then((res) => {
+          setLoading(false)
+          setSlots(res)
+        }).catch((err) => {
+          console.log(err)
+          setLoading(false)
+          setSlots([])
+        })
       })
       .catch((err) => {
         setLoading(false)
@@ -142,7 +145,7 @@ const BookingPage = () => {
       {loading ? (
         <Spinner mt={20} />
       ) : (
-        slots.length>0?<Slots date={date} docId={docId} fetcDocData={fetcDocData}  data={slots} setSlots={setSlots} />:<EmptySlots/>
+        slots.length > 0 ? <Slots setLoading={setLoading} docId={docId} data={slots} setSlots={setSlots} /> : <EmptySlots />
       )}
     </Box>
   );
