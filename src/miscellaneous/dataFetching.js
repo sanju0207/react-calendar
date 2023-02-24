@@ -1,5 +1,4 @@
 import axios from "axios";
-
 export const getDocAvailability = async (payload) => {
   return await axios
     .post(
@@ -7,16 +6,21 @@ export const getDocAvailability = async (payload) => {
       payload
     )
     .then((res) => {
+      console.log(res)
       return getCustomData(res.data.response);
     });
 };
-
-export const updateDocAvailability = async (payload) => {
-  return await axios.patch("", payload).then((res) => {
+export const updateOneSlotAvailability = async (payload) => {
+  return await axios.post("http://localhost/setmore_availability/api/get_doc_availibility.php?p=update_availability", payload).then((res) => {
     return getCustomData(res.data.response);
   });
 };
-
+export const updateAllSlotAvailability = async (payload) => {
+  console.log(payload)
+  return await axios.post("http://localhost/setmore_availability/api/get_doc_availibility.php?p=update_all", payload).then((res) => {
+    return getCustomData(res.data.response);
+  });
+};
 const getCustomData = (data) => {
   const customData = data.map((el) => {
     const timeData = el.slot_date_time.split(" ");

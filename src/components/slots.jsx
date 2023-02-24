@@ -1,8 +1,9 @@
-import { Box, Button, Checkbox, Flex, Text, useToast } from "@chakra-ui/react";
+import { Box, Text, useToast } from "@chakra-ui/react";
 import React, { useRef } from "react";
-import { validateSlotTime } from "../miscellaneous/misc";
+import { updateOneSlotAvailability } from "../miscellaneous/dataFetching";
+import { validateSlotTime } from "../miscellaneous/functions";
 
-const Slots = ({ data, setSlots }) => {
+const Slots = ({ data, setSlots, date, docId, fetchDocData }) => {
   const toast = useToast();
   const ref = useRef(null);
   const handleSatusChange = (id, status, date) => {
@@ -17,20 +18,32 @@ const Slots = ({ data, setSlots }) => {
       return;
     }
     let updatedStatus = status == 0 ? 1 : 0;
-    const updatedSlots = data.map((el) => {
-      if (id == el.id) {
-        return { ...el, is_available: updatedStatus };
-      }
-      return el;
-    });
-    setSlots(updatedSlots);
-    toast({
-      description: "Status updated",
-      duration: 1500,
-      isClosable: true,
-      status: "success",
-      position: "top",
-    });
+    updateOneSlotAvailability({ id: id, is_available: updatedStatus })
+      .then((res) => {
+        // const updatedSlots = data.map((el) => {
+        //   if (id == el.id) {
+        //     return { ...el, is_available: updatedStatus };
+        //   }
+        //   return el;
+        // });
+        // setSlots(updatedSlots);
+        fetchDocData(date, docId);
+        toast({
+          description: "Status updated",
+          duration: 1500,
+          isClosable: true,
+          status: "success",
+          position: "top",
+        });
+      })
+      .catch((err) => {
+        toast({
+          description: "Something went wrong",
+          duration: 1500,
+          status: "error",
+          isClosable: "true",
+        });
+      });
   };
 
   return (
@@ -55,6 +68,9 @@ const Slots = ({ data, setSlots }) => {
               key={el.id}
               onClick={() => handleSatusChange(el.id, el.is_available, el.date)}
               cursor={"pointer"}
+              py={2}
+              borderRadius={10}
+              color="white"
               bg={el.is_available == 0 ? "grey" : "green"}
             >
               <Text>{el.date}</Text>
