@@ -2,13 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
-  Checkbox,
   Flex,
   Input,
-  Radio,
-  RadioGroup,
   Spinner,
-  Stack,
   Text,
   useToast,
 } from "@chakra-ui/react";
@@ -18,20 +14,38 @@ import { getCurrentDate, validateSlotTime } from "../miscellaneous/functions";
 import {
   getDocAvailability,
   updateAllSlotAvailability,
-} from "../miscellaneous/dataFetching";
+} from "../miscellaneous/docAPIs";
 import EmptySlots from "../components/emptySlots";
-const BookingPage = () => {
+import Error from "../components/error";
+const SlotsPage = () => {
   const [slots, setSlots] = useState([]);
   const [date, setDate] = useState(getCurrentDate());
-  const [docId, setDocId] = useState("r9f3d1675399892487");
+  const [docId, setDocId] = useState("");
+  const [error, SetError] = useState(false);
+  const [slotsError, setSlotsError] = useState(false);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
   const params = useParams();
+
+
   const toast = useToast();
   const fetcDocData = (docId, date) => {
     setLoading(true);
     getDocAvailability({ doc_id: docId, slot_date: date })
       .then((res) => {
+        if (res === "No data found") {
+          setSlotsError(true);
+          setLoading(false);
+          setSlots([]);
+          return;
+        }
+        if (res === "Parameters missing") {
+          SetError(true);
+          setLoading(false);
+          setSlots([]);
+          return;
+        }
+        setSlotsError(false);
         setSlots(res);
         setLoading(false);
       })
@@ -40,10 +54,11 @@ const BookingPage = () => {
         setSlots([]);
         setLoading(false);
       });
-  }
+  };
   useEffect(() => {
-    fetcDocData(docId, date)
-  }, [date]);
+    setDocId(params.id);
+    fetcDocData(params.id, date);
+  }, [date, params]);
 
   const handleDateChange = (e) => {
     setDate(e.target.value);
@@ -60,31 +75,33 @@ const BookingPage = () => {
       });
       return;
     }
-    setLoading(true)
+    setLoading(true);
     updateAllSlotAvailability({
       doc_id: docId,
       slot_date: date,
       is_available: +value,
     })
       .then((res) => {
-        setLoading(false)
+        setLoading(false);
         toast({
           description: "status updated",
           duration: 1500,
           status: "success",
           isClosable: "true",
         });
-        getDocAvailability({ doc_id: docId, slot_date: date }).then((res) => {
-          setLoading(false)
-          setSlots(res)
-        }).catch((err) => {
-          console.log(err)
-          setLoading(false)
-          setSlots([])
-        })
+        getDocAvailability({ doc_id: docId, slot_date: date })
+          .then((res) => {
+            setLoading(false);
+            setSlots(res);
+          })
+          .catch((err) => {
+            console.log(err);
+            setLoading(false);
+            setSlots([]);
+          });
       })
       .catch((err) => {
-        setLoading(false)
+        setLoading(false);
         toast({
           description: "Something went wrong",
           duration: 1500,
@@ -99,7 +116,7 @@ const BookingPage = () => {
       <Text fontWeight={"bold"} fontSize="3xl" m={5}>
         List of Slots
       </Text>
-      <Box w="50%" m="auto">
+      <Box w="40%" m="auto">
         <Input
           border={"1px solid black"}
           onChange={handleDateChange}
@@ -110,11 +127,15 @@ const BookingPage = () => {
         />
       </Box>
       <Flex
-        w={"50%"}
+        w={["70%", "70%", "50%", "50%"]}
         m="auto"
         justifyContent={"space-between"}
         mt={5}
+        alignItems={["center", "center", "", ""]}
+        gap={[3, 3, 0, 0]}
         flexDirection={["column", "column", "row", "row"]}
+        boxShadow="rgba(0, 0, 0, 0.24) 0px 3px 8px;"
+        p={6}
       >
         <Box>
           <Flex alignItems={"center"} gap={2}>
@@ -127,7 +148,25 @@ const BookingPage = () => {
           </Flex>
         </Box>
         <Flex gap={5}>
-          <RadioGroup
+          <Button
+            isDisabled={!validateSlotTime(inputRef?.current?.value)}
+            onClick={()=>handleToggleAll(1)}
+            _hover={"none"}
+            color={"white"}
+            bg={"rgb(0,128,0)"}
+          >
+            Available
+          </Button>
+          <Button
+            isDisabled={!validateSlotTime(inputRef?.current?.value)}
+            _hover={"none"}
+            color={"white"}
+            bg={"rgb(128,128,128)"}
+            onClick={()=>handleToggleAll(0)}
+          >
+            Unavailable
+          </Button>
+          {/* <RadioGroup
             onChange={handleToggleAll}
             isDisabled={!validateSlotTime(inputRef?.current?.value)}
           >
@@ -139,16 +178,25 @@ const BookingPage = () => {
                 Unavailable
               </Radio>
             </Stack>
-          </RadioGroup>
+          </RadioGroup> */}
         </Flex>
       </Flex>
       {loading ? (
         <Spinner mt={20} />
-      ) : (
-        slots.length > 0 ? <Slots setLoading={setLoading} docId={docId} data={slots} setSlots={setSlots} /> : <EmptySlots />
-      )}
+      ) : error ? (
+        <Error />
+      ) : slots.length > 0 ? (
+        <Slots
+          setLoading={setLoading}
+          docId={docId}
+          data={slots}
+          setSlots={setSlots}
+        />
+      ) : slotsError ? (
+        <EmptySlots />
+      ) : null}
     </Box>
   );
 };
 
-export default BookingPage;
+export default SlotsPage;

@@ -1,11 +1,9 @@
-import logo from './logo.svg';
 import './App.css';
-
-import BookingPage from './pages/bookingPage';
+import AllRoutes from './routes/allRoutes';
 function App() {
   return (
     <div className="App">
-      <BookingPage/>
+      <AllRoutes/>
     </div>
   );
 }
